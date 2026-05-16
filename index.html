@@ -64,6 +64,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .topbar{padding:12px 16px;}
 .overlay.show{display:block;}
 }
+.dl-input-wrap{display:flex;gap:8px;margin-bottom:20px;}
+.dl-input-wrap input{flex:1;padding:14px 16px;background:#0f0f14;border:2px solid #2a2a3a;border-radius:12px;color:#e0e0e8;font-size:15px;outline:none;transition:border-color .3s;}
+.dl-input-wrap input:focus{border-color:#7c6aef;}
+.dl-go{padding:14px 28px;background:linear-gradient(135deg,#7c6aef,#4ade80);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:transform .2s,box-shadow .2s;white-space:nowrap;}
+.dl-go:hover{transform:translateY(-1px);box-shadow:0 4px 20px #7c6aef44;}
+.dl-go:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.dl-loading{text-align:center;padding:40px;color:#888;}
+.dl-loading .spinner{display:inline-block;width:40px;height:40px;border:3px solid #2a2a3a;border-top-color:#7c6aef;border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dl-result{background:#1a1a25;border:1px solid #2a2a3a;border-radius:12px;padding:20px;margin-top:16px;}
+.dl-meta{display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.dl-meta img{width:80px;height:80px;border-radius:12px;object-fit:cover;border:2px solid #2a2a3a;}
+.dl-meta-text{flex:1;min-width:200px;}
+.dl-meta-text .dl-title{font-size:15px;font-weight:600;color:#e0e0e8;line-height:1.4;}
+.dl-meta-text .dl-author{font-size:12px;color:#7c6aef;margin-top:4px;}
+.dl-platform-badge{display:inline-block;padding:2px 10px;background:#7c6aef22;color:#7c6aef;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px;}
+.dl-links{display:flex;flex-direction:column;gap:8px;}
+.dl-links a{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0f0f14;border:1px solid #2a2a3a;border-radius:10px;color:#e0e0e8;text-decoration:none;font-size:14px;transition:all .2s;}
+.dl-links a:hover{border-color:#7c6aef;background:#7c6aef11;transform:translateX(4px);}
+.dl-links a .dl-q{color:#4ade80;font-weight:600;}
+.dl-links a .dl-t{font-size:12px;color:#888;text-transform:uppercase;}
+.dl-error{text-align:center;padding:24px;color:#ef4444;background:#ef444411;border:1px solid #ef444433;border-radius:12px;margin-top:16px;font-size:14px;}
+.dl-platforms{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.dl-platform-btn{padding:8px 16px;border-radius:20px;border:1px solid #2a2a3a;background:#0f0f14;color:#888;font-size:12px;cursor:pointer;transition:all .2s;}
+.dl-platform-btn.active{border-color:#7c6aef;color:#7c6aef;background:#7c6aef11;}
+.dl-platform-btn:hover{border-color:#7c6aef;color:#e0e0e8;}
 </style>
 </head>
 <body>
@@ -401,6 +427,137 @@ Tools.retwall={render(){return '<div class="card"><div class="card-title">Retain
 // ===== 16. LOAD ESTIMATION =====
 Tools.loadcalc={types:{'Residential':{dl:3.5,ll:1.5},'Office':{dl:5,ll:2.5},'Industrial':{dl:7.5,ll:7.5},'Warehouse':{dl:5,ll:15}},render(){return '<div class="card"><div class="card-title">Load Estimation</div><div class="row"><div class="field"><label>Type</label><select id="ld-type" onchange="Tools.loadcalc.calc()">'+Object.keys(this.types).map(function(t){return '<option value="'+t+'">'+t+'</option>';}).join('')+'</select></div><div class="field"><label>Area (m2)</label><input type="number" id="ld-area" value="100" oninput="Tools.loadcalc.calc()"></div><div class="field"><label>Floors</label><input type="number" id="ld-floors" value="1" min="1" oninput="Tools.loadcalc.calc()"></div></div></div><div id="ld-result"></div>';},calc(){var t=this.types[document.getElementById('ld-type').value];var a=+document.getElementById('ld-area').value||0,f=+document.getElementById('ld-floors').value||1;document.getElementById('ld-result').innerHTML='<div class="info-grid"><div class="info-item"><div class="il">Dead Load</div><div class="iv">'+t.dl+' kN/m2</div></div><div class="info-item"><div class="il">Live Load</div><div class="iv">'+t.ll+' kN/m2</div></div><div class="info-item"><div class="il">Total/m2</div><div class="iv">'+((t.dl+t.ll)*f).toFixed(1)+' kN/m2</div></div><div class="info-item"><div class="il">Total Load</div><div class="iv">'+((t.dl+t.ll)*f*a).toFixed(0)+' kN</div></div><div class="info-item"><div class="il">Total (ton)</div><div class="iv">'+((t.dl+t.ll)*f*a/9.81).toFixed(1)+' ton</div></div></div>';}};
 
+
+// ===== MEDIA DOWNLOADER ENGINE =====
+const DL_API = ''; // Cloudflare Worker URL — isi setelah deploy (contoh: https://toolbox-api.your-subdomain.workers.dev)
+const DL_PLATFORMS = {
+  tiktok:{name:'TikTok',icon:'\u{1f3ac}',patterns:[/tiktok\.com|vm\.tiktok\.com/i]},
+  instagram:{name:'Instagram',icon:'\u{1f4f7}',patterns:[/instagram\.com/i]},
+  youtube:{name:'YouTube',icon:'\u{1f3a5}',patterns:[/youtube\.com|youtu\.be/i]},
+  twitter:{name:'Twitter/X',icon:'\u{1f426}',patterns:[/twitter\.com|x\.com/i]},
+  threads:{name:'Threads',icon:'\u{1f9f5}',patterns:[/threads\.net/i]}
+};
+function detectPlatform(u){for(var k in DL_PLATFORMS){if(DL_PLATFORMS[k].patterns.some(function(p){return p.test(u)}))return k;}return null;}
+function dlRenderMeta(d){
+  var h='<div class="dl-meta">';
+  if(d.thumbnail)h+='<img src="'+d.thumbnail+'" onerror="this.style.display=\'none\'">';
+  h+='<div class="dl-meta-text">';
+  h+='<div class="dl-title">'+(d.title||'').substring(0,200)+'</div>';
+  if(d.author)h+='<div class="dl-author">@'+d.author+'</div>';
+  h+='<div class="dl-platform-badge">'+(d.platform||'Unknown')+'</div>';
+  h+='</div></div>';
+  return h;
+}
+function dlRenderLinks(results){
+  if(!results||results.length===0)return'<div class="dl-error">No download links found</div>';
+  var h='<div class="dl-links">';
+  results.forEach(function(r){
+    h+='<a href="'+r.url+'" target="_blank" rel="noopener"><span class="dl-t">'+r.quality+'</span><span class="dl-q">Download \u2192</span></a>';
+  });
+  h+='</div>';
+  return h;
+}
+
+// ===== 17. UNIVERSAL DOWNLOADER =====
+Tools.dluniversal={platform:'',render(){
+  var pbs='';for(var k in DL_PLATFORMS){pbs+='<div class="dl-platform-btn '+(k===this.platform?'active':'')+'" onclick="Tools.dluniversal.setPlatform(\''+k+'\')">'+DL_PLATFORMS[k].icon+' '+DL_PLATFORMS[k].name+'</div>';}
+  return '<div class="card"><div class="card-title">\u{1f517} Social Media Downloader</div><div class="dl-platforms">'+pbs+'</div><div class="dl-input-wrap"><input type="text" id="dl-url" placeholder="Paste link here (auto-detect platform)..." onkeydown="if(event.keyCode===13)Tools.dluniversal.go()"><button class="dl-go" onclick="Tools.dluniversal.go()">\u{2b07} Download</button></div><div id="dl-output"></div></div>';
+},setPlatform(p){this.platform=p;document.getElementById('dl-url').focus();},
+async go(){
+  var url=(document.getElementById('dl-url').value||'').trim();
+  if(!url){document.getElementById('dl-output').innerHTML='<div class="dl-error">Paste a URL first!</div>';return;}
+  var plat=this.platform||detectPlatform(url);
+  if(!plat){document.getElementById('dl-output').innerHTML='<div class="dl-error">Cannot detect platform. Click one of the platform buttons above first.</div>';return;}
+  if(!DL_API){document.getElementById('dl-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Backend not configured yet. Deploy the Cloudflare Worker first, then set DL_API.</div>';return;}
+  document.getElementById('dl-output').innerHTML='<div class="dl-loading"><div class="spinner"></div><p style="margin-top:12px">Fetching from '+DL_PLATFORMS[plat].name+'...</p></div>';
+  try{
+    var res=await fetch(DL_API+'/api/download?url='+encodeURIComponent(url)+'&platform='+plat);
+    var data=await res.json();
+    if(data.error){document.getElementById('dl-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f '+data.error+'</div>';return;}
+    document.getElementById('dl-output').innerHTML='<div class="dl-result">'+dlRenderMeta(data)+dlRenderLinks(data.results)+'</div>';
+  }catch(e){document.getElementById('dl-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Error: '+e.message+'</div>';}
+}};
+
+// ===== 18. TIKTOK DOWNLOADER =====
+Tools.dltiktok={render(){
+  return '<div class="card"><div class="card-title">\u{1f3ac} TikTok Downloader</div><div class="dl-input-wrap"><input type="text" id="dlt-url" placeholder="Paste TikTok link..." onkeydown="if(event.keyCode===13)Tools.dltiktok.go()"><button class="dl-go" onclick="Tools.dltiktok.go()">\u{2b07} Download</button></div><div id="dlt-output"></div></div>';
+},async go(){
+  var url=(document.getElementById('dlt-url').value||'').trim();
+  if(!url){document.getElementById('dlt-output').innerHTML='<div class="dl-error">Paste a TikTok URL!</div>';return;}
+  if(!DL_API){document.getElementById('dlt-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Backend not configured.</div>';return;}
+  document.getElementById('dlt-output').innerHTML='<div class="dl-loading"><div class="spinner"></div><p style="margin-top:12px">Fetching video...</p></div>';
+  try{
+    var res=await fetch(DL_API+'/api/download?url='+encodeURIComponent(url)+'&platform=tiktok');
+    var data=await res.json();
+    if(data.error){document.getElementById('dlt-output').innerHTML='<div class="dl-error">'+data.error+'</div>';return;}
+    document.getElementById('dlt-output').innerHTML='<div class="dl-result">'+dlRenderMeta(data)+dlRenderLinks(data.results)+'</div>';
+  }catch(e){document.getElementById('dlt-output').innerHTML='<div class="dl-error">'+e.message+'</div>';}
+}};
+
+// ===== 19. INSTAGRAM DOWNLOADER =====
+Tools.dlig={render(){
+  return '<div class="card"><div class="card-title">\u{1f4f7} Instagram Downloader</div><div class="dl-input-wrap"><input type="text" id="dlig-url" placeholder="Paste Instagram post/reel/story link..." onkeydown="if(event.keyCode===13)Tools.dlig.go()"><button class="dl-go" onclick="Tools.dlig.go()">\u{2b07} Download</button></div><div id="dlig-output"></div></div>';
+},async go(){
+  var url=(document.getElementById('dlig-url').value||'').trim();
+  if(!url){document.getElementById('dlig-output').innerHTML='<div class="dl-error">Paste an Instagram URL!</div>';return;}
+  if(!DL_API){document.getElementById('dlig-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Backend not configured.</div>';return;}
+  document.getElementById('dlig-output').innerHTML='<div class="dl-loading"><div class="spinner"></div><p style="margin-top:12px">Fetching post...</p></div>';
+  try{
+    var res=await fetch(DL_API+'/api/download?url='+encodeURIComponent(url)+'&platform=instagram');
+    var data=await res.json();
+    if(data.error){document.getElementById('dlig-output').innerHTML='<div class="dl-error">'+data.error+'</div>';return;}
+    document.getElementById('dlig-output').innerHTML='<div class="dl-result">'+dlRenderMeta(data)+dlRenderLinks(data.results)+'</div>';
+  }catch(e){document.getElementById('dlig-output').innerHTML='<div class="dl-error">'+e.message+'</div>';}
+}};
+
+// ===== 20. YOUTUBE DOWNLOADER =====
+Tools.dlyt={render(){
+  return '<div class="card"><div class="card-title">\u{1f3a5} YouTube Downloader</div><div class="dl-input-wrap"><input type="text" id="dlyt-url" placeholder="Paste YouTube link..." onkeydown="if(event.keyCode===13)Tools.dlyt.go()"><button class="dl-go" onclick="Tools.dlyt.go()">\u{2b07} Download</button></div><div id="dlyt-output"></div></div>';
+},async go(){
+  var url=(document.getElementById('dlyt-url').value||'').trim();
+  if(!url){document.getElementById('dlyt-output').innerHTML='<div class="dl-error">Paste a YouTube URL!</div>';return;}
+  if(!DL_API){document.getElementById('dlyt-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Backend not configured.</div>';return;}
+  document.getElementById('dlyt-output').innerHTML='<div class="dl-loading"><div class="spinner"></div><p style="margin-top:12px">Fetching video...</p></div>';
+  try{
+    var res=await fetch(DL_API+'/api/download?url='+encodeURIComponent(url)+'&platform=youtube');
+    var data=await res.json();
+    if(data.error){document.getElementById('dlyt-output').innerHTML='<div class="dl-error">'+data.error+'</div>';return;}
+    document.getElementById('dlyt-output').innerHTML='<div class="dl-result">'+dlRenderMeta(data)+dlRenderLinks(data.results)+'</div>';
+  }catch(e){document.getElementById('dlyt-output').innerHTML='<div class="dl-error">'+e.message+'</div>';}
+}};
+
+// ===== 21. TWITTER DOWNLOADER =====
+Tools.dltw={render(){
+  return '<div class="card"><div class="card-title">\u{1f426} Twitter/X Downloader</div><div class="dl-input-wrap"><input type="text" id="dltw-url" placeholder="Paste Twitter/X link..." onkeydown="if(event.keyCode===13)Tools.dltw.go()"><button class="dl-go" onclick="Tools.dltw.go()">\u{2b07} Download</button></div><div id="dltw-output"></div></div>';
+},async go(){
+  var url=(document.getElementById('dltw-url').value||'').trim();
+  if(!url){document.getElementById('dltw-output').innerHTML='<div class="dl-error">Paste a Twitter/X URL!</div>';return;}
+  if(!DL_API){document.getElementById('dltw-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Backend not configured.</div>';return;}
+  document.getElementById('dltw-output').innerHTML='<div class="dl-loading"><div class="spinner"></div><p style="margin-top:12px">Fetching tweet...</p></div>';
+  try{
+    var res=await fetch(DL_API+'/api/download?url='+encodeURIComponent(url)+'&platform=twitter');
+    var data=await res.json();
+    if(data.error){document.getElementById('dltw-output').innerHTML='<div class="dl-error">'+data.error+'</div>';return;}
+    document.getElementById('dltw-output').innerHTML='<div class="dl-result">'+dlRenderMeta(data)+dlRenderLinks(data.results)+'</div>';
+  }catch(e){document.getElementById('dltw-output').innerHTML='<div class="dl-error">'+e.message+'</div>';}
+}};
+
+// ===== 22. THREADS DOWNLOADER =====
+Tools.dlthreads={render(){
+  return '<div class="card"><div class="card-title">\u{1f9f5} Threads Downloader</div><div class="dl-input-wrap"><input type="text" id="dlt-url" placeholder="Paste Threads link..." onkeydown="if(event.keyCode===13)Tools.dlthreads.go()"><button class="dl-go" onclick="Tools.dlthreads.go()">\u{2b07} Download</button></div><div id="dltt-output"></div></div>';
+},async go(){
+  var url=(document.getElementById('dlt-url').value||'').trim();
+  if(!url){document.getElementById('dltt-output').innerHTML='<div class="dl-error">Paste a Threads URL!</div>';return;}
+  if(!DL_API){document.getElementById('dltt-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Backend not configured.</div>';return;}
+  document.getElementById('dltt-output').innerHTML='<div class="dl-loading"><div class="spinner"></div><p style="margin-top:12px">Fetching thread...</p></div>';
+  try{
+    var res=await fetch(DL_API+'/api/download?url='+encodeURIComponent(url)+'&platform=threads');
+    var data=await res.json();
+    if(data.error){document.getElementById('dltt-output').innerHTML='<div class="dl-error">'+data.error+'</div>';return;}
+    document.getElementById('dltt-output').innerHTML='<div class="dl-result">'+dlRenderMeta(data)+dlRenderLinks(data.results)+'</div>';
+  }catch(e){document.getElementById('dltt-output').innerHTML='<div class="dl-error">'+e.message+'</div>';}
+}};
+
 // ===== PLATFORM ENGINE =====
 const TOOL_LIST=[
   {key:'converter',name:'Unit Converter',icon:'\u{1f4d0}'},
@@ -418,7 +575,13 @@ const TOOL_LIST=[
   {key:'concvol',name:'Concrete Volume',icon:'\u{1f4e6}'},
   {key:'soil',name:'Soil Bearing',icon:'\u{1faa8}'},
   {key:'retwall',name:'Retaining Wall',icon:'\u{1f9f1}'},
-  {key:'loadcalc',name:'Load Estimation',icon:'\u{2696}'}
+  {key:'loadcalc',name:'Load Estimation',icon:'\u{2696}'},
+  {key:'dluniversal',name:'Social Downloader',icon:'\u{1f517}'},
+  {key:'dltiktok',name:'TikTok Downloader',icon:'\u{1f3ac}'},
+  {key:'dlig',name:'Instagram Downloader',icon:'\u{1f4f7}'},
+  {key:'dlyt',name:'YouTube Downloader',icon:'\u{1f3a5}'},
+  {key:'dltw',name:'Twitter/X Downloader',icon:'\u{1f426}'},
+  {key:'dlthreads',name:'Threads Downloader',icon:'\u{1f9f5}'}
 ];
 let currentTool='converter';
 
