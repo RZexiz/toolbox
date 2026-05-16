@@ -503,6 +503,7 @@
         sourceIdx: 8, // GMT+7 Jakarta
         targetIdx: 0,  // GMT+0 London
         inputTime: '',
+        use24h: false,
 
         formatOffset(off) {
             const sign = off >= 0 ? '+' : '-';
@@ -519,7 +520,7 @@
         },
 
         formatTime(d) {
-            return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !this.use24h });
         },
 
         formatDate(d) {
@@ -552,7 +553,10 @@
                                 <div class="tz-now-label">Your Local Time</div>
                                 <div class="tz-now-time" id="tzNowTime">${this.formatTime(new Date())}</div>
                             </div>
-                            <div style="text-align:right;">
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <button class="tz-quick-btn ${this.use24h?'active':''}" onclick="Tools.timezone.use24h=!Tools.timezone.use24h;Tools.timezone.refresh()" style="font-size:13px;font-weight:600;">
+                                    ${this.use24h ? '24H' : '12H'}
+                                </button>
                                 <div class="tz-now-date">${this.formatDate(new Date())}</div>
                             </div>
                         </div>
