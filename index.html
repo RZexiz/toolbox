@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolBox — Multi-Tool Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0f0f14;
+            --sidebar: #16161e;
+            --card: #1a1a25;
+            --card-hover: #22222f;
+            --border: #2a2a3a;
+            --text: #e4e4ef;
+            --text-dim: #8888a0;
+            --accent: #7c6aef;
+            --accent-glow: rgba(124, 106, 239, 0.3);
+            --accent-hover: #9585f5;
+            --green: #4ade80;
+            --green-dim: rgba(74, 222, 128, 0.15);
+            --radius: 12px;
+            --transition: 0.2s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span { color: var(--accent); }
+
+        .sidebar-section {
+            padding: 16px 12px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-dim);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px;
+        }
+
+        .tool-btn {
+            width: 100%;
+            padding: 10px 14px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .tool-btn:hover {
+            background: var(--card);
+            color: var(--text);
+        }
+
+        .tool-btn.active {
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 12px var(--accent-glow);
+        }
+
+        .tool-btn .icon { font-size: 18px; width: 24px; text-align: center; }
+
+        .tool-btn .badge {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .badge-new {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .badge-soon {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
+        /* ── Main Content ── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--sidebar);
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        /* ── Unit Converter ── */
+        .converter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .cat-tab {
+            padding: 8px 18px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .cat-tab:hover { border-color: var(--accent); color: var(--text); }
+
+        .cat-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            font-weight: 600;
+        }
+
+        .converter-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+        }
+
+        .converter-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .field-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 22px;
+            font-weight: 600;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .field-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .field-group select {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+            margin-top: 10px;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238888a0' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+
+        .field-group select:focus { border-color: var(--accent); }
+
+        .swap-btn {
+            width: 48px; height: 48px;
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+            margin-top: 20px;
+        }
+
+        .swap-btn:hover {
+            transform: rotate(180deg);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .result-info {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--green-dim);
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--green);
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        .result-info.show { display: block; }
+
+        /* ── Translator ── */
+        .translator-wrapper {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--card);
+        }
+
+        .translator-panel {
+            display: flex;
+            flex-direction: column;
+            min-height: 380px;
+        }
+
+        .translator-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .translator-panel-header select {
+            padding: 8px 32px 8px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238888a0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        .translator-panel-header select:focus { border-color: var(--accent); }
+
+        .translator-panel-actions { display: flex; gap: 4px; }
+
+        .t-action-btn {
+            width: 34px; height: 34px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+        }
+
+        .t-action-btn:hover { background: var(--card-hover); color: var(--text); }
+        .t-action-btn.copied { color: var(--green); }
+
+        .translator-textarea {
+            flex: 1;
+            width: 100%;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .translator-textarea::placeholder { color: var(--text-dim); opacity: 0.6; }
+        .translator-textarea.output { color: var(--green); cursor: default; }
+
+        .translator-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .translator-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            gap: 12px;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+        }
+
+        .translate-btn {
+            width: 52px; height: 52px;
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .translate-btn:hover { transform: scale(1.1); box-shadow: 0 6px 25px var(--accent-glow); }
+        .translate-btn:active { transform: scale(0.95); }
+        .translate-btn.loading { animation: spin 1s linear infinite; }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .swap-lang-btn {
+            width: 40px; height: 40px;
+            background: var(--card-hover);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            color: var(--text-dim);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .swap-lang-btn:hover { border-color: var(--accent); color: var(--accent); transform: rotate(180deg); }
+
+        .translator-status {
+            text-align: center;
+            padding: 12px;
+            font-size: 13px;
+            color: var(--text-dim);
+            min-height: 40px;
+        }
+        .translator-status.error { color: #f87171; }
+        .translator-status.success { color: var(--green); }
+
+        /* ── Placeholder ── */
+        .placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 400px;
+            color: var(--text-dim);
+        }
+        .placeholder .icon { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+        .placeholder h2 { font-size: 20px; margin-bottom: 8px; color: var(--text); }
+        .placeholder p { font-size: 14px; max-width: 400px; }
+
+        /* ── Overlay ── */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 99;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0; top: 0; bottom: 0;
+                transform: translateX(-100%);
+            }
+            .sidebar.open { transform: translateX(0); }
+            .overlay.show { display: block; }
+            .hamburger { display: block; }
+            .content { padding: 20px 16px; }
+            .converter-grid { grid-template-columns: 1fr; }
+            .swap-btn { margin: 0 auto; transform: rotate(90deg); }
+            .swap-btn:hover { transform: rotate(270deg); }
+            .translator-wrapper { grid-template-columns: 1fr; }
+            .translator-center {
+                flex-direction: row;
+                border-left: none; border-right: none;
+                border-top: 1px solid var(--border);
+                border-bottom: 1px solid var(--border);
+                padding: 12px;
+            }
+            .swap-lang-btn { transform: rotate(90deg); }
+            .swap-lang-btn:hover { transform: rotate(270deg); }
+            .translator-panel { min-height: 220px; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🧰</div>
+            <div class="logo-text">Tool<span>Box</span></div>
+        </div>
+        <div class="sidebar-section">Tools</div>
+        <nav class="sidebar-nav" id="toolNav">
+            <button class="tool-btn active" data-tool="converter">
+                <span class="icon">📐</span> Unit Converter
+                <span class="badge badge-new">NEW</span>
+            </button>
+            <button class="tool-btn" data-tool="translator">
+                <span class="icon">🌐</span> Translator
+                <span class="badge badge-new">NEW</span>
+            </button>
+            <button class="tool-btn" data-tool="coming" disabled>
+                <span class="icon">📊</span> Charts & Graphs
+                <span class="badge badge-soon">SOON</span>
+            </button>
+            <button class="tool-btn" data-tool="coming" disabled>
+                <span class="icon">🔐</span> Password Generator
+                <span class="badge badge-soon">SOON</span>
+            </button>
+            <button class="tool-btn" data-tool="coming" disabled>
+                <span class="icon">🖼️</span> Image Tools
+                <span class="badge badge-soon">SOON</span>
+            </button>
+            <button class="tool-btn" data-tool="coming" disabled>
+                <span class="icon">⏱️</span> Pomodoro Timer
+                <span class="badge badge-soon">SOON</span>
+            </button>
+        </nav>
+        <div class="sidebar-footer">Built with ❤️ by Zexiz</div>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="main">
+        <div class="header">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="hamburger" id="hamburger">☰</button>
+                <h1 id="pageTitle">📐 Unit Converter</h1>
+            </div>
+        </div>
+        <div class="content" id="content"></div>
+    </div>
+
+    <script>
+    const Tools = {};
+
+    // ═══════════════════════════════════════
+    //  TOOL: UNIT CONVERTER
+    // ═══════════════════════════════════════
+    Tools.converter = {
+        title: '📐 Unit Converter',
+        categories: {
+            Length: {
+                units: {
+                    'Meter': 1, 'Kilometer': 0.001, 'Centimeter': 100,
+                    'Millimeter': 1000, 'Mile': 0.000621371, 'Yard': 1.09361,
+                    'Foot': 3.28084, 'Inch': 39.3701, 'Nautical Mile': 0.000539957
+                }
+            },
+            Weight: {
+                units: {
+                    'Kilogram': 1, 'Gram': 1000, 'Milligram': 1000000,
+                    'Pound': 2.20462, 'Ounce': 35.274, 'Ton': 0.001, 'Stone': 0.157473
+                }
+            },
+            Temperature: { special: true, units: { 'Celsius': 'C', 'Fahrenheit': 'F', 'Kelvin': 'K' } },
+            Volume: {
+                units: {
+                    'Liter': 1, 'Milliliter': 1000, 'Gallon (US)': 0.264172,
+                    'Quart': 1.05669, 'Pint': 2.11338, 'Cup': 4.22675,
+                    'Fluid Ounce': 33.814, 'Tablespoon': 67.628
+                }
+            },
+            Speed: {
+                units: {
+                    'm/s': 1, 'km/h': 3.6, 'mph': 2.23694,
+                    'Knot': 1.94384, 'Mach': 0.00293858, 'ft/s': 3.28084
+                }
+            },
+            'Data Storage': {
+                units: {
+                    'Byte': 1, 'Kilobyte': 0.001, 'Megabyte': 0.000001,
+                    'Gigabyte': 0.000000001, 'Terabyte': 0.000000000001,
+                    'Bit': 8, 'Kibibyte': 1/1024, 'Mebibyte': 1/(1024*1024)
+                }
+            },
+            Time: {
+                units: {
+                    'Second': 1, 'Millisecond': 1000, 'Minute': 1/60,
+                    'Hour': 1/3600, 'Day': 1/86400, 'Week': 1/604800,
+                    'Month (30d)': 1/2592000, 'Year (365d)': 1/31536000
+                }
+            },
+            Area: {
+                units: {
+                    'sq Meter': 1, 'sq Kilometer': 0.000001, 'sq Mile': 3.861e-7,
+                    'sq Foot': 10.7639, 'sq Inch': 1550, 'Hectare': 0.0001, 'Acre': 0.000247105
+                }
+            }
+        },
+        currentCategory: 'Length', fromValue: '', toValue: '',
+
+        render() {
+            const cat = this.categories[this.currentCategory];
+            const units = Object.keys(cat.units);
+            const cats = Object.keys(this.categories);
+            return `
+                <div class="converter-tabs">
+                    ${cats.map(c => `<button class="cat-tab ${c===this.currentCategory?'active':''}" onclick="Tools.converter.setCategory('${c}')">${c}</button>`).join('')}
+                </div>
+                <div class="converter-card fade-in">
+                    <div class="converter-grid">
+                        <div class="field-group">
+                            <label>From</label>
+                            <input type="number" id="fromVal" placeholder="0" oninput="Tools.converter.convert()" value="${this.fromValue}">
+                            <select id="fromUnit" onchange="Tools.converter.convert()">
+                                ${units.map((u,i)=>`<option value="${u}" ${i===0?'selected':''}>${u}</option>`).join('')}
+                            </select>
+                        </div>
+                        <button class="swap-btn" onclick="Tools.converter.swap()" title="Swap">⇄</button>
+                        <div class="field-group">
+                            <label>To</label>
+                            <input type="text" id="toVal" placeholder="0" readonly style="color:var(--green);cursor:default;">
+                            <select id="toUnit" onchange="Tools.converter.convert()">
+                                ${units.map((u,i)=>`<option value="${u}" ${i===1?'selected':''}>${u}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="result-info" id="resultInfo"></div>
+                </div>`;
+        },
+        setCategory(c) { this.currentCategory = c; this.fromValue = ''; this.toValue = ''; renderTool(); },
+        convert() {
+            const fromInput = document.getElementById('fromVal');
+            const toInput = document.getElementById('toVal');
+            const fromUnit = document.getElementById('fromUnit').value;
+            const toUnit = document.getElementById('toUnit').value;
+            const info = document.getElementById('resultInfo');
+            this.fromValue = fromInput.value;
+            const val = parseFloat(fromInput.value);
+            if (isNaN(val) || fromInput.value === '') { toInput.value = ''; info.classList.remove('show'); return; }
+            let result;
+            if (this.currentCategory === 'Temperature') {
+                let c = fromUnit==='Celsius'?val:fromUnit==='Fahrenheit'?(val-32)*5/9:val-273.15;
+                result = toUnit==='Celsius'?c:toUnit==='Fahrenheit'?c*9/5+32:c+273.15;
+            } else {
+                const cat = this.categories[this.currentCategory];
+                result = (val / cat.units[fromUnit]) * cat.units[toUnit];
+            }
+            let display = Math.abs(result)>=1e6||(Math.abs(result)<0.001&&result!==0) ? result.toExponential(6) : Number.isInteger(result) ? result.toString() : parseFloat(result.toPrecision(10)).toString();
+            toInput.value = display; this.toValue = display;
+            info.textContent = `${val} ${fromUnit} = ${display} ${toUnit}`;
+            info.classList.add('show');
+        },
+        swap() {
+            const fs = document.getElementById('fromUnit'), ts = document.getElementById('toUnit'), fi = document.getElementById('fromVal');
+            const tmp = fs.value; fs.value = ts.value; ts.value = tmp;
+            fi.value = this.toValue; this.fromValue = this.toValue; this.convert();
+        }
+    };
+
+    // ═══════════════════════════════════════
+    //  TOOL: TRANSLATOR
+    // ═══════════════════════════════════════
+    Tools.translator = {
+        title: '🌐 Translator',
+        languages: {
+            'Auto Detect':'auto','English':'en','Indonesian':'id','Japanese':'ja','Korean':'ko',
+            'Chinese (Simplified)':'zh-CN','Chinese (Traditional)':'zh-TW','Thai':'th',
+            'Vietnamese':'vi','Arabic':'ar','Hindi':'hi','Bengali':'bn','Turkish':'tr',
+            'Russian':'ru','German':'de','French':'fr','Spanish':'es','Portuguese':'pt',
+            'Italian':'it','Dutch':'nl','Polish':'pl','Swedish':'sv','Norwegian':'no',
+            'Danish':'da','Finnish':'fi','Greek':'el','Czech':'cs','Romanian':'ro',
+            'Hungarian':'hu','Ukrainian':'uk','Malay':'ms','Filipino':'tl','Swahili':'sw',
+            'Persian':'fa','Hebrew':'he','Burmese':'my','Khmer':'km','Lao':'lo',
+            'Nepali':'ne','Sinhala':'si','Tamil':'ta','Telugu':'te','Marathi':'mr',
+            'Gujarati':'gu','Punjabi':'pa','Urdu':'ur','Afrikaans':'af','Albanian':'sq',
+            'Amharic':'am','Armenian':'hy','Azerbaijani':'az','Basque':'eu','Belarusian':'be',
+            'Bosnian':'bs','Bulgarian':'bg','Catalan':'ca','Croatian':'hr','Estonian':'et',
+            'Georgian':'ka','Haitian Creole':'ht','Icelandic':'is','Irish':'ga','Javanese':'jv',
+            'Kannada':'kn','Kazakh':'kk','Kurdish':'ku','Kyrgyz':'ky','Latvian':'lv',
+            'Lithuanian':'lt','Macedonian':'mk','Malagasy':'mg','Maltese':'mt','Mongolian':'mn',
+            'Montenegrin':'me','Pashto':'ps','Serbian':'sr','Slovak':'sk','Slovenian':'sl',
+            'Somali':'so','Sundanese':'su','Tajik':'tg','Tatar':'tt','Uzbek':'uz','Zulu':'zu'
+        },
+        sourceLang: 'auto', targetLang: 'id', sourceText: '', resultText: '', isTranslating: false,
+
+        getTargets() {
+            return Object.entries(this.languages).filter(([_,c])=>c!=='auto').map(([n,c])=>({name:n,code:c}));
+        },
+
+        render() {
+            const targets = this.getTargets();
+            const wc = this.sourceText.trim() ? this.sourceText.trim().split(/\s+/).length : 0;
+            return `
+                <div class="fade-in">
+                    <div class="translator-wrapper">
+                        <div class="translator-panel">
+                            <div class="translator-panel-header">
+                                <select id="srcLang" onchange="Tools.translator.sourceLang=this.value">
+                                    ${Object.entries(this.languages).map(([n,c])=>`<option value="${c}" ${c===this.sourceLang?'selected':''}>${n}</option>`).join('')}
+                                </select>
+                                <div class="translator-panel-actions">
+                                    <button class="t-action-btn" onclick="Tools.translator.clearSource()" title="Clear">✕</button>
+                                </div>
+                            </div>
+                            <textarea class="translator-textarea" id="srcText" placeholder="Type or paste text to translate..." oninput="Tools.translator.sourceText=this.value;Tools.translator.updateFooter()">${this.sourceText}</textarea>
+                            <div class="translator-footer"><span>${this.sourceText.length} characters · ${wc} words</span></div>
+                        </div>
+                        <div class="translator-center">
+                            <button class="swap-lang-btn" onclick="Tools.translator.swapLangs()" title="Swap">⇄</button>
+                            <button class="translate-btn" id="translateBtn" onclick="Tools.translator.translate()" title="Translate">➤</button>
+                        </div>
+                        <div class="translator-panel">
+                            <div class="translator-panel-header">
+                                <select id="tgtLang" onchange="Tools.translator.targetLang=this.value">
+                                    ${targets.map(({name:n,code:c})=>`<option value="${c}" ${c===this.targetLang?'selected':''}>${n}</option>`).join('')}
+                                </select>
+                                <div class="translator-panel-actions">
+                                    <button class="t-action-btn" onclick="Tools.translator.copyResult()" title="Copy" id="copyBtn">📋</button>
+                                </div>
+                            </div>
+                            <textarea class="translator-textarea output" id="tgtText" readonly placeholder="Translation will appear here...">${this.resultText}</textarea>
+                            <div class="translator-footer"><span>${this.resultText ? this.resultText.trim().split(/\s+/).filter(w=>w).length+' words' : ''}</span></div>
+                        </div>
+                    </div>
+                    <div class="translator-status" id="translatorStatus"></div>
+                </div>`;
+        },
+
+        updateFooter() {
+            const src = document.getElementById('srcText');
+            const tgt = document.getElementById('tgtText');
+            if (!src) return;
+            const t = src.value;
+            const f = src.closest('.translator-panel').querySelector('.translator-footer span');
+            if (f) f.textContent = `${t.length} characters · ${t.trim()?t.trim().split(/\s+/).length:0} words`;
+            const tf = tgt?.closest('.translator-panel')?.querySelector('.translator-footer span');
+            if (tf && tgt.value) tf.textContent = `${tgt.value.trim().split(/\s+/).filter(w=>w).length} words`;
+            else if (tf) tf.textContent = '';
+        },
+
+        clearSource() {
+            this.sourceText = ''; this.resultText = '';
+            const s = document.getElementById('srcText'), t = document.getElementById('tgtText');
+            if (s) s.value = ''; if (t) t.value = '';
+            this.updateFooter(); this.setStatus('');
+        },
+
+        async swapLangs() {
+            if (this.sourceLang === 'auto') { this.setStatus('Cannot swap with Auto Detect', 'error'); return; }
+            [this.sourceLang, this.targetLang] = [this.targetLang, this.sourceLang];
+            [this.sourceText, this.resultText] = [this.resultText, this.sourceText];
+            renderTool();
+        },
+
+        async doFetch(text, srcCode, tgtCode) {
+            const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${srcCode}|${tgtCode}`;
+            const res = await fetch(url);
+            return await res.json();
+        },
+
+        // Character-based language detection
+        detectLang(text) {
+            const has = (regex) => regex.test(text);
+            // CJK ranges
+            if (has(/[\u3040-\u309F\u30A0-\u30FF]/)) return 'ja'; // Hiragana/Katakana
+            if (has(/[\uAC00-\uD7AF]/)) return 'ko'; // Hangul
+            if (has(/[\u4E00-\u9FFF]/)) {
+                // Chinese vs Japanese: if has kana, it's Japanese
+                if (has(/[\u3040-\u309F\u30A0-\u30FF]/)) return 'ja';
+                return 'zh-CN';
+            }
+            if (has(/[\u0E00-\u0E7F]/)) return 'th'; // Thai
+            if (has(/[\u0600-\u06FF\u0750-\u077F]/)) return 'ar'; // Arabic
+            if (has(/[\u0400-\u04FF]/)) return 'ru'; // Cyrillic
+            if (has(/[\u0900-\u097F]/)) return 'hi'; // Devanagari
+            if (has(/[\u0980-\u09FF]/)) return 'bn'; // Bengali
+            if (has(/[\u0B80-\u0BFF]/)) return 'ta'; // Tamil
+            if (has(/[\u0C00-\u0C7F]/)) return 'te'; // Telugu
+            if (has(/[\u0E80-\u0EFF]/)) return 'lo'; // Lao
+            if (has(/[\u1000-\u109F]/)) return 'my'; // Myanmar
+            if (has(/[\u1780-\u17FF]/)) return 'km'; // Khmer
+            if (has(/[\u0370-\u03FF]/)) return 'el'; // Greek
+            if (has(/[\u0530-\u058F]/)) return 'hy'; // Armenian
+            if (has(/[\u10A0-\u10FF]/)) return 'ka'; // Georgian
+            if (has(/[\uFB50-\uFDFF\uFE70-\uFEFF]/)) return 'fa'; // Arabic extended = Persian
+            if (has(/[\u0590-\u05FF]/)) return 'he'; // Hebrew
+            // Latin-based: try English first (most common source)
+            return 'en';
+        },
+
+        async translate() {
+            const text = document.getElementById('srcText').value.trim();
+            if (!text) { this.setStatus('Enter text to translate', 'error'); return; }
+            if (this.sourceLang !== 'auto' && this.sourceLang === this.targetLang) { this.setStatus('Same source and target language', 'error'); return; }
+
+            const btn = document.getElementById('translateBtn');
+            btn.classList.add('loading'); btn.disabled = true;
+            this.setStatus('Translating...');
+
+            try {
+                let data, detectedLang = null;
+
+                if (this.sourceLang === 'auto') {
+                    detectedLang = this.detectLang(text);
+                    data = await this.doFetch(text, detectedLang, this.targetLang);
+                } else {
+                    data = await this.doFetch(text, this.sourceLang, this.targetLang);
+                }
+
+                if (data.responseStatus === 200 && data.responseData?.translatedText) {
+                    this.resultText = data.responseData.translatedText;
+                    this.sourceText = text;
+                    document.getElementById('tgtText').value = this.resultText;
+                    this.updateFooter();
+                    if (detectedLang) {
+                        this.setStatus(`Detected: ${this.getLangName(detectedLang)} → ${this.getLangName(this.targetLang)}`, 'success');
+                    } else {
+                        this.setStatus('Translated successfully', 'success');
+                    }
+                } else {
+                    throw new Error(data.responseDetails || 'Translation failed');
+                }
+            } catch (err) {
+                this.setStatus(`Error: ${err.message || 'Failed to translate'}`, 'error');
+            } finally {
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        },
+
+        getLangName(code) {
+            for (const [n,c] of Object.entries(this.languages)) if (c===code) return n;
+            return code;
+        },
+
+        copyResult() {
+            const text = document.getElementById('tgtText')?.value;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.classList.add('copied'); btn.textContent = '✓';
+                setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '📋'; }, 1500);
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta);
+                ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            });
+        },
+
+        setStatus(msg, type) {
+            const el = document.getElementById('translatorStatus');
+            if (!el) return;
+            el.textContent = msg;
+            el.className = 'translator-status' + (type ? ` ${type}` : '');
+        }
+    };
+
+    // ═══════════════════════════════════════
+    //  TOOL: PLACEHOLDER
+    // ═══════════════════════════════════════
+    Tools.coming = {
+        title: '🚧 Coming Soon',
+        render() {
+            return `<div class="placeholder fade-in"><div class="icon">🚧</div><h2>Coming Soon!</h2><p>This tool is under development. Stay tuned!</p></div>`;
+        }
+    };
+
+    // ═══════════════════════════════════════
+    //  PLATFORM ENGINE
+    // ═══════════════════════════════════════
+    let currentTool = 'converter';
+
+    function renderTool() {
+        document.getElementById('content').innerHTML = Tools[currentTool].render();
+    }
+
+    function switchTool(name) {
+        if (name === currentTool && name !== 'coming') return;
+        currentTool = name;
+        document.getElementById('pageTitle').textContent = Tools[name].title;
+        renderTool();
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.toggle('active', b.dataset.tool === name));
+        closeSidebar();
+    }
+
+    document.getElementById('toolNav').addEventListener('click', e => {
+        const btn = e.target.closest('.tool-btn');
+        if (!btn || btn.disabled) return;
+        switchTool(btn.dataset.tool);
+    });
+
+    function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+    function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+    document.getElementById('hamburger').addEventListener('click', openSidebar);
+    document.getElementById('overlay').addEventListener('click', closeSidebar);
+
+    renderTool();
+    </script>
+</body>
+</html>
