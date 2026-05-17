@@ -90,6 +90,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .dl-platform-btn{padding:8px 16px;border-radius:20px;border:1px solid #2a2a3a;background:#0f0f14;color:#888;font-size:12px;cursor:pointer;transition:all .2s;}
 .dl-platform-btn.active{border-color:#7c6aef;color:#7c6aef;background:#7c6aef11;}
 .dl-platform-btn:hover{border-color:#7c6aef;color:#e0e0e8;}
+.nav-group{margin-bottom:4px;}
+.nav-group-header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;cursor:pointer;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:600;transition:color .2s;user-select:none;}
+.nav-group-header:hover{color:#aaa;}
+.nav-group-header .arrow{font-size:10px;transition:transform .2s;}
+.nav-group-header.open .arrow{transform:rotate(90deg);}
+.nav-group-items{overflow:hidden;transition:max-height .3s ease;}
+.nav-group-items.collapsed{max-height:0!important;}
 </style>
 </head>
 <body>
@@ -559,30 +566,39 @@ Tools.dlthreads={render(){
 }};
 
 // ===== PLATFORM ENGINE =====
-const TOOL_LIST=[
-  {key:'converter',name:'Unit Converter',icon:'\u{1f4d0}'},
-  {key:'timezone',name:'Time Zone',icon:'\u{1f30d}'},
-  {key:'pipe',name:'Pipe Calculator',icon:'\u{1f529}'},
-  {key:'pressflow',name:'Pressure & Flow',icon:'\u{1f4ca}'},
-  {key:'flange',name:'Flange Dimensions',icon:'\u{1f527}'},
-  {key:'coord',name:'Coordinate Converter',icon:'\u{1f5fa}'},
-  {key:'concrete',name:'Concrete Calculator',icon:'\u{1f3d7}'},
-  {key:'rebar',name:'Rebar Calculator',icon:'\u{1f517}'},
-  {key:'steel',name:'Structural Steel',icon:'\u{1f3ed}'},
-  {key:'slope',name:'Slope/Grade',icon:'\u{1f4d0}'},
-  {key:'pspan',name:'Pipe Support Span',icon:'\u{1f4cf}'},
-  {key:'pburial',name:'Pipe Burial Depth',icon:'\u{26cf}'},
-  {key:'concvol',name:'Concrete Volume',icon:'\u{1f4e6}'},
-  {key:'soil',name:'Soil Bearing',icon:'\u{1faa8}'},
-  {key:'retwall',name:'Retaining Wall',icon:'\u{1f9f1}'},
-  {key:'loadcalc',name:'Load Estimation',icon:'\u{2696}'},
-  {key:'dluniversal',name:'Social Downloader',icon:'\u{1f517}'},
-  {key:'dltiktok',name:'TikTok Downloader',icon:'\u{1f3ac}'},
-  {key:'dlig',name:'Instagram Downloader',icon:'\u{1f4f7}'},
-  {key:'dlyt',name:'YouTube Downloader',icon:'\u{1f3a5}'},
-  {key:'dltw',name:'Twitter/X Downloader',icon:'\u{1f426}'},
-  {key:'dlthreads',name:'Threads Downloader',icon:'\u{1f9f5}'}
+const TOOL_GROUPS=[
+  {id:'general',name:'General',icon:'\u{1f3e0}',tools:[
+    {key:'converter',name:'Unit Converter',icon:'\u{1f4d0}'},
+    {key:'timezone',name:'Time Zone',icon:'\u{1f30d}'}
+  ]},
+  {id:'engineering',name:'Engineering',icon:'\u{2699}',tools:[
+    {key:'pipe',name:'Pipe Calculator',icon:'\u{1f529}'},
+    {key:'pressflow',name:'Pressure & Flow',icon:'\u{1f4ca}'},
+    {key:'flange',name:'Flange Dimensions',icon:'\u{1f527}'},
+    {key:'coord',name:'Coordinate Converter',icon:'\u{1f5fa}'},
+    {key:'pspan',name:'Pipe Support Span',icon:'\u{1f4cf}'},
+    {key:'pburial',name:'Pipe Burial Depth',icon:'\u{26cf}'}
+  ]},
+  {id:'civil',name:'Civil & Structural',icon:'\u{1f3d7}',tools:[
+    {key:'concrete',name:'Concrete Calculator',icon:'\u{1f3d7}'},
+    {key:'rebar',name:'Rebar Calculator',icon:'\u{1f517}'},
+    {key:'steel',name:'Structural Steel',icon:'\u{1f3ed}'},
+    {key:'slope',name:'Slope/Grade',icon:'\u{1f4d0}'},
+    {key:'concvol',name:'Concrete Volume',icon:'\u{1f4e6}'},
+    {key:'soil',name:'Soil Bearing',icon:'\u{1faa8}'},
+    {key:'retwall',name:'Retaining Wall',icon:'\u{1f9f1}'},
+    {key:'loadcalc',name:'Load Estimation',icon:'\u{2696}'}
+  ]},
+  {id:'social',name:'Social Media',icon:'\u{1f4f1}',tools:[
+    {key:'dluniversal',name:'Social Downloader',icon:'\u{1f517}'},
+    {key:'dltiktok',name:'TikTok Downloader',icon:'\u{1f3ac}'},
+    {key:'dlig',name:'Instagram Downloader',icon:'\u{1f4f7}'},
+    {key:'dlyt',name:'YouTube Downloader',icon:'\u{1f3a5}'},
+    {key:'dltw',name:'Twitter/X Downloader',icon:'\u{1f426}'},
+    {key:'dlthreads',name:'Threads Downloader',icon:'\u{1f9f5}'}
+  ]}
 ];
+const TOOL_LIST=TOOL_GROUPS.flatMap(g=>g.tools);
 let currentTool='converter';
 
 function renderTool(){
@@ -602,9 +618,36 @@ function toggleSidebar(){
   document.getElementById('overlay').classList.toggle('show');
 }
 function initNav(){
-  document.getElementById('nav').innerHTML=TOOL_LIST.map(t=>
-    `<div class="nav-item" data-key="${t.key}" onclick="switchTool('${t.key}')"><span class="icon">${t.icon}</span>${t.name}</div>`
-  ).join('');
+  var collapsed=JSON.parse(localStorage.getItem('navGroups')||'{}');
+  document.getElementById('nav').innerHTML=TOOL_GROUPS.map(g=>{
+    var isOpen=collapsed[g.id]===undefined?!true:!collapsed[g.id];
+    return '<div class="nav-group" data-group="'+g.id+'">'+
+      '<div class="nav-group-header '+(isOpen?'open':'')+'" onclick="toggleGroup(\''+g.id+'\')">'+
+        '<span>'+g.icon+' '+g.name+'</span><span class="arrow">\u25b6</span>'+
+      '</div>'+
+      '<div class="nav-group-items'+(isOpen?'':' collapsed')+'" style="max-height:'+(isOpen?'500px':'0')+'">'+
+        g.tools.map(t=>'<div class="nav-item" data-key="'+t.key+'" onclick="switchTool(\''+t.key+'\')"><span class="icon">'+t.icon+'</span>'+t.name+'</div>').join('')+
+      '</div></div>';
+  }).join('');
+}
+function toggleGroup(id){
+  var group=document.querySelector('.nav-group[data-group="'+id+'"]');
+  var header=group.querySelector('.nav-group-header');
+  var items=group.querySelector('.nav-group-items');
+  var isOpen=header.classList.contains('open');
+  header.classList.toggle('open');
+  items.classList.toggle('collapsed');
+  items.style.maxHeight=isOpen?'0':'500px';
+  var collapsed=JSON.parse(localStorage.getItem('navGroups')||'{}');
+  collapsed[id]=isOpen;
+  localStorage.setItem('navGroups',JSON.stringify(collapsed));
+}
+function switchTool(key){
+  currentTool=key;
+  document.getElementById('pageTitle').textContent=TOOL_LIST.find(t=>t.key===key).name;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.key===key));
+  renderTool();
+  if(window.innerWidth<=768)toggleSidebar();
 }
 initNav();renderTool();if(Tools[currentTool].calc)Tools[currentTool].calc();
 </script>
