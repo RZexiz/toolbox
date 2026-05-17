@@ -99,6 +99,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .nav-group-items.collapsed{max-height:0!important;}
 .sidebar-footer{text-align:center;padding:16px;font-size:11px;color:#555;border-top:1px solid #1a1a25;margin-top:8px;}
 .sidebar-footer strong{color:#7c6aef;}
+.home-section{margin-bottom:32px;}
+.home-section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#555;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #1a1a25;}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.home-card{background:#12121a;border:1px solid #1e1e2e;border-radius:12px;padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.home-card:hover{border-color:#7c6aef;transform:translateY(-2px);box-shadow:0 8px 24px #7c6aef15;}
+.home-card-icon{font-size:28px;margin-bottom:10px;}
+.home-card-name{font-size:15px;font-weight:600;color:#e0e0e8;margin-bottom:4px;}
+.home-card-desc{font-size:12px;color:#666;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -106,7 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
 <nav class="sidebar" id="sidebar">
-  <div class="sidebar-header">
+  <div class="sidebar-header" onclick="switchTool('home')" style="cursor:pointer">
     <h1>⚙️ <span>Tool</span>Box</h1>
     <p>All In One Tool</p>
   </div>
@@ -571,41 +579,60 @@ Tools.dlthreads={render(){
 // ===== PLATFORM ENGINE =====
 const TOOL_GROUPS=[
   {id:'general',name:'General',icon:'\u{1f3e0}',tools:[
-    {key:'converter',name:'Unit Converter',icon:'\u{1f4d0}'},
-    {key:'timezone',name:'Time Zone',icon:'\u{1f30d}'}
+    {key:'converter',name:'Unit Converter',icon:'\u{1f4d0}',desc:'Convert between units of length, weight, temperature, volume, speed & more'},
+    {key:'timezone',name:'Time Zone',icon:'\u{1f30d}',desc:'Convert time between different time zones worldwide'}
   ]},
   {id:'engineering',name:'Engineering',icon:'\u{2699}',tools:[
-    {key:'pipe',name:'Pipe Calculator',icon:'\u{1f529}'},
-    {key:'pressflow',name:'Pressure & Flow',icon:'\u{1f4ca}'},
-    {key:'flange',name:'Flange Dimensions',icon:'\u{1f527}'},
-    {key:'coord',name:'Coordinate Converter',icon:'\u{1f5fa}'},
-    {key:'pspan',name:'Pipe Support Span',icon:'\u{1f4cf}'},
-    {key:'pburial',name:'Pipe Burial Depth',icon:'\u{26cf}'}
+    {key:'pipe',name:'Pipe Calculator',icon:'\u{1f529}',desc:'Pipe dimensions, wall thickness & weight per ASME B36.10'},
+    {key:'pressflow',name:'Pressure & Flow',icon:'\u{1f4ca}',desc:'Calculate pressure, flow rate & velocity in pipes'},
+    {key:'flange',name:'Flange Dimensions',icon:'\u{1f527}',desc:'Flange OD, bolt circle & drillings per ASME B16.5'},
+    {key:'coord',name:'Coordinate Converter',icon:'\u{1f5fa}',desc:'Convert between DMS, DD & UTM coordinates'},
+    {key:'pspan',name:'Pipe Support Span',icon:'\u{1f4cf}',desc:'Recommended span between pipe supports'},
+    {key:'pburial',name:'Pipe Burial Depth',icon:'\u{26cf}',desc:'Minimum pipe burial depth standards'}
   ]},
   {id:'civil',name:'Civil & Structural',icon:'\u{1f3d7}',tools:[
-    {key:'concrete',name:'Concrete Calculator',icon:'\u{1f3d7}'},
-    {key:'rebar',name:'Rebar Calculator',icon:'\u{1f517}'},
-    {key:'steel',name:'Structural Steel',icon:'\u{1f3ed}'},
-    {key:'slope',name:'Slope/Grade',icon:'\u{1f4d0}'},
-    {key:'concvol',name:'Concrete Volume',icon:'\u{1f4e6}'},
-    {key:'soil',name:'Soil Bearing',icon:'\u{1faa8}'},
-    {key:'retwall',name:'Retaining Wall',icon:'\u{1f9f1}'},
-    {key:'loadcalc',name:'Load Estimation',icon:'\u{2696}'}
+    {key:'concrete',name:'Concrete Calculator',icon:'\u{1f3d7}',desc:'Mix ratio, volume & material quantities for concrete'},
+    {key:'rebar',name:'Rebar Calculator',icon:'\u{1f517}',desc:'Rebar spacing, weight & cutting length'},
+    {key:'steel',name:'Structural Steel',icon:'\u{1f3ed}',desc:'W-shape, H-beam & steel section properties'},
+    {key:'slope',name:'Slope/Grade',icon:'\u{1f4d0}',desc:'Convert between slope ratio, percentage & angle'},
+    {key:'concvol',name:'Concrete Volume',icon:'\u{1f4e6}',desc:'Calculate concrete volume for slabs, walls & footings'},
+    {key:'soil',name:'Soil Bearing',icon:'\u{1faa8}',desc:'Allowable bearing capacity of soil types'},
+    {key:'retwall',name:'Retaining Wall',icon:'\u{1f9f1}',desc:'Basic retaining wall design calculator'},
+    {key:'loadcalc',name:'Load Estimation',icon:'\u{2696}',desc:'Dead load, live load & total load estimation'}
   ]},
   {id:'social',name:'Social Media',icon:'\u{1f4f1}',tools:[
-    {key:'dluniversal',name:'Social Downloader',icon:'\u{1f517}'},
-    {key:'dltiktok',name:'TikTok Downloader',icon:'\u{1f3ac}'},
-    {key:'dlig',name:'Instagram Downloader',icon:'\u{1f4f7}'},
-    {key:'dlyt',name:'YouTube Downloader',icon:'\u{1f3a5}'},
-    {key:'dltw',name:'Twitter/X Downloader',icon:'\u{1f426}'},
-    {key:'dlthreads',name:'Threads Downloader',icon:'\u{1f9f5}'}
+    {key:'dluniversal',name:'Social Downloader',icon:'\u{1f517}',desc:'Auto-detect platform — paste any link to download'},
+    {key:'dltiktok',name:'TikTok Downloader',icon:'\u{1f3ac}',desc:'Download TikTok videos without watermark'},
+    {key:'dlig',name:'Instagram Downloader',icon:'\u{1f4f7}',desc:'Download Instagram posts, reels & stories'},
+    {key:'dlyt',name:'YouTube Downloader',icon:'\u{1f3a5}',desc:'Download YouTube videos & audio'},
+    {key:'dltw',name:'Twitter/X Downloader',icon:'\u{1f426}',desc:'Download photos, videos & GIFs from Twitter/X'},
+    {key:'dlthreads',name:'Threads Downloader',icon:'\u{1f9f5}',desc:'Download media from Threads posts'}
   ]}
 ];
 const TOOL_LIST=TOOL_GROUPS.flatMap(g=>g.tools);
-let currentTool='converter';
+let currentTool='home';
 
+function renderHome(){
+  var h='<div style="padding:4px 0">';
+  h+='<div style="text-align:center;margin-bottom:32px"><h2 style="font-size:22px;font-weight:700;color:#e0e0e8;margin-bottom:4px">Welcome to ToolBox</h2><p style="color:#555;font-size:13px">'+TOOL_LIST.length+' tools available</p></div>';
+  TOOL_GROUPS.forEach(function(g){
+    h+='<div class="home-section"><div class="home-section-title">'+g.icon+' '+g.name+'</div><div class="home-grid">';
+    g.tools.forEach(function(t){
+      h+='<div class="home-card" onclick="switchTool(\''+t.key+'\')"><div class="home-card-icon">'+t.icon+'</div><div class="home-card-name">'+t.name+'</div><div class="home-card-desc">'+t.desc+'</div></div>';
+    });
+    h+='</div></div>';
+  });
+  h+='</div>';
+  return h;
+}
 function renderTool(){
   document.getElementById('content').innerHTML='';
+  if(currentTool==='home'){
+    document.getElementById('content').innerHTML=renderHome();
+    document.getElementById('pageTitle').textContent='ToolBox';
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+    return;
+  }
   var r=Tools[currentTool].render();
   if(typeof r==='string')document.getElementById('content').innerHTML=r;
 }
