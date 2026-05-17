@@ -429,7 +429,7 @@ Tools.loadcalc={types:{'Residential':{dl:3.5,ll:1.5},'Office':{dl:5,ll:2.5},'Ind
 
 
 // ===== MEDIA DOWNLOADER ENGINE =====
-const DL_API = ''; // Cloudflare Worker URL — isi setelah deploy (contoh: https://toolbox-api.your-subdomain.workers.dev)
+const DL_API = 'http://43.134.124.106:3100'; // Backend proxy — deployed on VPS
 const DL_PLATFORMS = {
   tiktok:{name:'TikTok',icon:'\u{1f3ac}',patterns:[/tiktok\.com|vm\.tiktok\.com/i]},
   instagram:{name:'Instagram',icon:'\u{1f4f7}',patterns:[/instagram\.com/i]},
@@ -468,7 +468,7 @@ async go(){
   if(!url){document.getElementById('dl-output').innerHTML='<div class="dl-error">Paste a URL first!</div>';return;}
   var plat=this.platform||detectPlatform(url);
   if(!plat){document.getElementById('dl-output').innerHTML='<div class="dl-error">Cannot detect platform. Click one of the platform buttons above first.</div>';return;}
-  if(!DL_API){document.getElementById('dl-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Backend not configured yet. Deploy the Cloudflare Worker first, then set DL_API.</div>';return;}
+  if(!DL_API){document.getElementById('dl-output').innerHTML='<div class="dl-error">\u{26a0}\ufe0f Backend not configured. Contact admin.</div>';return;}
   document.getElementById('dl-output').innerHTML='<div class="dl-loading"><div class="spinner"></div><p style="margin-top:12px">Fetching from '+DL_PLATFORMS[plat].name+'...</p></div>';
   try{
     var res=await fetch(DL_API+'/api/download?url='+encodeURIComponent(url)+'&platform='+plat);
