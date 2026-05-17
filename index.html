@@ -650,7 +650,7 @@ function toggleSidebar(){
 function initNav(){
   var collapsed=JSON.parse(localStorage.getItem('navGroups')||'{}');
   document.getElementById('nav').innerHTML=TOOL_GROUPS.map(g=>{
-    var isOpen=collapsed[g.id]===undefined?!true:!collapsed[g.id];
+    var isOpen=collapsed[g.id]===undefined?false:!!collapsed[g.id];
     return '<div class="nav-group" data-group="'+g.id+'">'+
       '<div class="nav-group-header '+(isOpen?'open':'')+'" onclick="toggleGroup(\''+g.id+'\')">'+
         '<span>'+g.icon+' '+g.name+'</span><span class="arrow">\u25b6</span>'+
