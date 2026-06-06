@@ -110,6 +110,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .home-card-icon{font-size:26px;margin-bottom:6px;}
 .home-card-name{font-size:11px;font-weight:600;color:#e0e0e8;line-height:1.3;}
 .home-card-desc{display:none;}
+
+:root{--bg:#0f0f14;--bg2:#16161e;--bg3:#1a1a25;--border:#2a2a3a;--text:#e0e0e8;--text2:#888;--accent:#7c6aef;--accent2:#4ade80;--card-bg:#1a1a25;--input-bg:#0f0f14}
+[data-theme="light"]{--bg:#f5f5f7;--bg2:#ffffff;--bg3:#ffffff;--border:#d1d5db;--text:#1a1a2a;--text2:#666;--accent:#6c5bde;--accent2:#22c55e;--card-bg:#ffffff;--input-bg:#f0f0f2}
+body{background:var(--bg);color:var(--text)}
+.sidebar{background:var(--bg2);border-right-color:var(--border)}
+.topbar{background:var(--bg2);border-bottom-color:var(--border)}
+.card{background:var(--card-bg);border-color:var(--border)}
+.card-title{color:var(--text2)}
+.field select,.field input{background:var(--input-bg);border-color:var(--border);color:var(--text)}
+.field select option{background:var(--bg2);color:var(--text)}
+.nav-item{color:var(--text2)}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);color:var(--accent);border-left-color:var(--accent)}
+.nav-group-header{color:var(--text2)}
+.nav-group-header:hover{color:var(--text)}
+.info-item{background:var(--input-bg);border-color:var(--border)}
+.info-item .iv{color:var(--text)}
+.toggle-btn{position:fixed;bottom:20px;right:20px;z-index:200;width:44px;height:44px;border-radius:50%;border:2px solid var(--border);background:var(--bg2);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:all .2s}
+.toggle-btn:hover{border-color:var(--accent);transform:scale(1.1)}
 </style>
 </head>
 <body>
@@ -812,6 +831,30 @@ function switchTool(key){
   renderTool();
   if(window.innerWidth<=768)toggleSidebar();
 }
+
+// Theme Toggle
+(function(){
+  var saved=localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',saved);
+  function updateIcon(){var btn=document.getElementById('theme-toggle');if(btn)btn.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'\u2600\uFE0F':'\uD83C\uDF19';}
+  window.toggleTheme=function(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    var next=cur==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    localStorage.setItem('theme',next);
+    updateIcon();
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    var btn=document.createElement('button');
+    btn.id='theme-toggle';
+    btn.className='toggle-btn';
+    btn.onclick=window.toggleTheme;
+    btn.title='Toggle Light/Dark';
+    document.body.appendChild(btn);
+    updateIcon();
+  });
+})();
+
 initNav();renderTool();if(Tools[currentTool].calc)Tools[currentTool].calc();
 </script>
 </body>
