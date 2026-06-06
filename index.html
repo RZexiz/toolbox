@@ -519,22 +519,83 @@ Tools.steel={shapes:[{n:'W6x9',d:152,bf:152,tw:4.3,tf:5.8,Ix:171,Sx:22.4,w:13.5}
 // ===== 10. SLOPE/GRADE =====
 Tools.slope={render(){return '<div class="card"><div class="card-title">Slope / Grade Converter</div><div class="row"><div class="field"><label>Percent (%)</label><input type="number" id="sl-pct" value="2" step="any" oninput="Tools.slope.fromPct()"></div><div class="field"><label>Angle (deg)</label><input type="number" id="sl-ang" step="any" oninput="Tools.slope.fromAng()"></div><div class="field"><label>Rise</label><input type="number" id="sl-rise" value="1" oninput="Tools.slope.fromRise()"></div><div class="field"><label>Run</label><input type="number" id="sl-run" value="50" oninput="Tools.slope.fromRise()"></div></div></div><div id="sl-svg"></div><div class="card"><div class="card-title">Common Slopes</div><div class="info-grid"><div class="info-item"><div class="il">Sidewalk</div><div class="iv">1-2%</div></div><div class="info-item"><div class="il">Drainage</div><div class="iv">1-2%</div></div><div class="info-item"><div class="il">Parking</div><div class="iv">1-3%</div></div><div class="info-item"><div class="il">Driveway</div><div class="iv">3-5%</div></div><div class="info-item"><div class="il">Highway</div><div class="iv">8.3%</div></div><div class="info-item"><div class="il">Max Road</div><div class="iv">12%</div></div></div></div>';},fromPct(){var p=+document.getElementById('sl-pct').value||0;document.getElementById('sl-ang').value=(Math.atan(p/100)*180/Math.PI).toFixed(2);document.getElementById('sl-rise').value=1;document.getElementById('sl-run').value=p>0?(100/p).toFixed(1):'inf';this.drawSvg(p);},fromAng(){var a=+document.getElementById('sl-ang').value||0;var p=Math.tan(a*Math.PI/180)*100;document.getElementById('sl-pct').value=p.toFixed(2);document.getElementById('sl-rise').value=1;document.getElementById('sl-run').value=p>0?(100/p).toFixed(1):'inf';this.drawSvg(p);},fromRise(){var r=+document.getElementById('sl-rise').value||0;var n=+document.getElementById('sl-run').value||1;var p=(r/n)*100;document.getElementById('sl-pct').value=p.toFixed(2);document.getElementById('sl-ang').value=(Math.atan(p/100)*180/Math.PI).toFixed(2);this.drawSvg(p);},drawSvg(p){var el=document.getElementById('sl-svg');if(!el)return;var ang=Math.atan(p/100)*180/Math.PI;var triW=Math.min(280,80/Math.max(0.01,Math.tan(Math.max(0.01,ang)*Math.PI/180)));triW=Math.max(triW,40);el.innerHTML='<svg viewBox="0 0 320 130" width="100%" style="max-width:340px;display:block;margin:0 auto 16px"><line x1="20" y1="100" x2="'+(20+triW)+'" y2="100" stroke="#7c6aef" stroke-width="2"/><line x1="'+(20+triW)+'" y1="100" x2="'+(20+triW)+'" y2="20" stroke="#4ade80" stroke-width="2"/><line x1="20" y1="100" x2="'+(20+triW)+'" y2="20" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,3"/><text x="'+(20+triW/2)+'" y="118" text-anchor="middle" fill="#7c6aef" font-size="10" font-weight="600">Run: '+document.getElementById('sl-run').value+'</text><text x="'+(20+triW+12)+'" y="65" fill="#4ade80" font-size="10" font-weight="600">Rise: '+document.getElementById('sl-rise').value+'</text><text x="'+(20+triW/2-10)+'" y="65" fill="#f59e0b" font-size="11" font-weight="700">'+ang.toFixed(1)+'°</text><text x="160" y="8" text-anchor="middle" fill="#888" font-size="10">1:'+(p>0?(100/p).toFixed(1):'∞')+' | '+p.toFixed(2)+'%</text></svg>';}};
 // ===== 11. PIPE SUPPORT SPAN =====
-Tools.pspan={render(){return '<div class="card"><div class="card-title">Pipe Support Span</div><div class="row"><div class="field"><label>NPS</label><select id="ps-nps" onchange="Tools.pspan.calc()">'+Object.keys(PIPES).map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('')+'</select></div><div class="field"><label>Fluid</label><select id="ps-fluid" onchange="Tools.pspan.calc()"><option value="liquid">Liquid</option><option value="gas">Gas</option><option value="steam">Steam</option></select></div><div class="field"><label>Insulation</label><select id="ps-ins" onchange="Tools.pspan.calc()"><option value="no">No</option><option value="yes">Yes</option></select></div></div></div><div id="ps-result"></div>';},calc(){var od=PIPES[document.getElementById('ps-nps').value][0];var fluid=document.getElementById('ps-fluid').value;var ins=document.getElementById('ps-ins').value==='yes';var k=fluid==='liquid'?2.5:fluid==='gas'?2.0:1.8;var span=k*Math.sqrt(od/25.4);if(ins)span*=0.85;var rec=span*0.9;
-var svg=`<svg viewBox="0 0 400 140" width="100%" style="max-width:420px;display:block;margin:0 auto 16px">
-  <line x1="20" y1="70" x2="380" y2="70" stroke="#7c6aef" stroke-width="8" opacity="0.3"/>
-  <line x1="20" y1="70" x2="380" y2="70" stroke="#7c6aef" stroke-width="2"/>
-  <rect x="70" y="72" width="8" height="30" rx="2" fill="#f59e0b"/>
-  <rect x="320" y="72" width="8" height="30" rx="2" fill="#f59e0b"/>
-  <line x1="74" y1="105" x2="74" y2="120" stroke="#f59e0b" stroke-width="2"/>
-  <line x1="324" y1="105" x2="324" y2="120" stroke="#f59e0b" stroke-width="2"/>
-  <line x1="74" y1="55" x2="324" y2="55" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="4,3"/>
-  <line x1="74" y1="48" x2="74" y2="62" stroke="#4ade80" stroke-width="1.5"/>
-  <line x1="324" y1="48" x2="324" y2="62" stroke="#4ade80" stroke-width="1.5"/>
-  <text x="199" y="48" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="700">Span: ${span.toFixed(1)} m</text>
-  <text x="199" y="130" text-anchor="middle" fill="#888" font-size="10">Recommended: ${rec.toFixed(1)} m (90%)</text>
-</svg>`;
-document.getElementById('ps-result').innerHTML=svg+'<div class="info-grid"><div class="info-item"><div class="il">Pipe OD</div><div class="iv">'+od+' mm</div></div><div class="info-item"><div class="il">Max Span</div><div class="iv">'+span.toFixed(1)+' m</div></div><div class="info-item"><div class="il">Recommended</div><div class="iv">'+rec.toFixed(1)+' m</div></div></div>';}};
-// ===== 12. PIPE BURIAL =====
+Tools.pspan={render(){return '<div class="card"><div class="card-title">Pipe Support Span</div><div class="row"><div class="field"><label>NPS</label><select id="ps-nps" onchange="Tools.pspan.calc()">'+Object.keys(PIPES).map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('')+'</select></div><div class="field"><label>Schedule</label><select id="ps-sch" onchange="Tools.pspan.calc()"></select></div><div class="field"><label>Fluid</label><select id="ps-fluid" onchange="Tools.pspan.calc()"><option value="liquid">Liquid (Water)</option><option value="oil">Oil</option><option value="gas">Gas</option><option value="steam">Steam</option><option value="empty">Empty</option></select></div><div class="field"><label>Insulation</label><select id="ps-ins" onchange="Tools.pspan.calc()"><option value="no">No</option><option value="yes">Yes (25mm)</option><option value="50">Yes (50mm)</option></select></div></div></div><div id="ps-result"></div>';},
+init(){var nps=document.getElementById('ps-nps').value;var schs=Object.keys(PIPES[nps][1]);var sel=document.getElementById('ps-sch');sel.innerHTML=schs.map(function(s){return '<option value="'+s+'"'+(s==='STD'?' selected':'')+'>'+s+'</option>';}).join('');this.calc();},
+calc(){
+var nps=document.getElementById('ps-nps').value;
+var sch=document.getElementById('ps-sch').value;
+var fluid=document.getElementById('ps-fluid').value;
+var ins=document.getElementById('ps-ins').value;
+// Pipe properties
+var D=PIPES[nps][0]/1000;  // OD in meters
+var t=PIPES[nps][1][sch]/1000;  // Wall thickness in meters
+var d=D-2*t;  // ID in meters
+// Section properties (SI units)
+var I=Math.PI/64*(Math.pow(D,4)-Math.pow(d,4));  // Moment of inertia m4
+var S=2*I/D;  // Section modulus m3
+// Weights per meter (N/m)
+var rhoSteel=7850;  // kg/m3
+var wPipe=Math.PI/4*(D*D-d*d)*rhoSteel*9.81;  // Pipe weight N/m
+// Fluid weights
+var fluidDens={liquid:1000,oil:850,gas:10,steam:5,empty:0};
+var wFluid=fluidDens[fluid]*Math.PI/4*d*d*9.81;
+// Insulation weight (approximate)
+var insWeight={no:0,yes:30,'50':60};  // N/m approx
+var wIns=insWeight[ins]||0;
+var wTotal=wPipe+wFluid+wIns;
+// Material properties (Carbon Steel)
+var E=200e9;  // Modulus of elasticity Pa
+var sigmaAllow=15.9e6;  // Allowable bending stress Pa (ASME B31.3)
+// === THREE CRITERIA ===
+// 1. Bending stress: L = sqrt(8 * S * sigmaAllow / wTotal)
+var Lbend=Math.sqrt(8*S*sigmaAllow/wTotal);
+// 2. Deflection: L = cbrt(384*E*I*deltaMax/(5*wTotal)), deltaMax = D/2 or 12mm
+var deltaMax=Math.min(D/2, 0.012);
+var Ldeflect=Math.cbrt(384*E*I*deltaMax/(5*wTotal));
+// 3. Vibration: L = sqrt(pi^2*E*I/(wTotal*fMin^2)), fMin=2.5Hz
+var fMin=2.5;
+var Lvib=Math.sqrt(Math.PI*Math.PI*E*I/(wTotal*fMin*fMin));
+// Governing span (minimum of three)
+var span=Math.min(Lbend,Ldeflect,Lvib);
+var spanMm=span*1000;
+var spanFt=span*3.28084;
+// Determine governing criteria
+var gov='Bending';
+if(Ldeflect<Math.min(Lbend,Lvib))gov='Deflection';
+if(Lvib<Math.min(Lbend,Ldeflect))gov='Vibration';
+// Recalc with 90% safety
+var rec=span*0.9;
+// SVG illustration
+var svg='<svg viewBox="0 0 400 140" width="100%" style="max-width:420px;display:block;margin:0 auto 16px">'+
+'<line x1="20" y1="70" x2="380" y2="70" stroke="#7c6aef" stroke-width="8" opacity="0.3"/>'+
+'<line x1="20" y1="70" x2="380" y2="70" stroke="#7c6aef" stroke-width="2"/>'+
+'<rect x="70" y="72" width="8" height="30" rx="2" fill="#f59e0b"/>'+
+'<rect x="320" y="72" width="8" height="30" rx="2" fill="#f59e0b"/>'+
+'<line x1="74" y1="105" x2="74" y2="120" stroke="#f59e0b" stroke-width="2"/>'+
+'<line x1="324" y1="105" x2="324" y2="120" stroke="#f59e0b" stroke-width="2"/>'+
+'<line x1="74" y1="55" x2="324" y2="55" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="4,3"/>'+
+'<line x1="74" y1="48" x2="74" y2="62" stroke="#4ade80" stroke-width="1.5"/>'+
+'<line x1="324" y1="48" x2="324" y2="62" stroke="#4ade80" stroke-width="1.5"/>'+
+'<text x="199" y="48" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="700">Span: '+spanMm.toFixed(0)+' mm ('+spanFt.toFixed(1)+' ft)</text>'+
+'<text x="199" y="130" text-anchor="middle" fill="#888" font-size="10">Recommended: '+(rec*1000).toFixed(0)+' mm (90%) | Governed by: '+gov+'</text>'+
+'</svg>';
+document.getElementById('ps-result').innerHTML=svg+
+'<div class="info-grid">'+
+'<div class="info-item"><div class="il">Max Span</div><div class="iv">'+spanMm.toFixed(0)+' mm</div></div>'+
+'<div class="info-item"><div class="il">Max Span</div><div class="iv">'+spanFt.toFixed(1)+' ft</div></div>'+
+'<div class="info-item"><div class="il">Recommended</div><div class="iv">'+(rec*1000).toFixed(0)+' mm</div></div>'+
+'<div class="info-item"><div class="il">Pipe Weight</div><div class="iv">'+(wPipe/9.81).toFixed(1)+' kg/m</div></div>'+
+'<div class="info-item"><div class="il">Fluid Weight</div><div class="iv">'+(wFluid/9.81).toFixed(1)+' kg/m</div></div>'+
+'<div class="info-item"><div class="il">Total Load</div><div class="iv">'+(wTotal/9.81).toFixed(1)+' kg/m</div></div>'+
+'<div class="info-item"><div class="il">Moment of Inertia</div><div class="iv">'+(I*1e8).toFixed(2)+' cm4</div></div>'+
+'<div class="info-item"><div class="il">Governing</div><div class="iv" style="color:#f59e0b">'+gov+'</div></div>'+
+'</div>'+
+'<div style="margin-top:12px;padding:10px;background:#0f0f14;border-radius:8px;border:1px solid #2a2a3a;font-size:11px;color:#666">'+
+'<strong style="color:#888">References:</strong> ASME B31.3 (σ_allow=15.9 MPa) | MSS SP-69 | Beam theory: L=√(8Sσ/w) | Deflection limit: D/2 or 12mm | Min frequency: 2.5 Hz'+
+'</div>';
+},
+onNPSChange(){var nps=document.getElementById('ps-nps').value;var schs=Object.keys(PIPES[nps][1]);document.getElementById('ps-sch').innerHTML=schs.map(function(s){return '<option value="'+s+'"'+(s==='STD'?' selected':'')+'>'+s+'</option>';}).join('');this.calc();}
+};// ===== 12. PIPE BURIAL =====
 Tools.pburial={render(){return '<div class="card"><div class="card-title">Pipe Burial Depth</div><div class="row"><div class="field"><label>NPS</label><select id="pb-nps" onchange="Tools.pburial.calc()">'+Object.keys(PIPES).map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('')+'</select></div><div class="field"><label>Surface</label><select id="pb-surf" onchange="Tools.pburial.calc()"><option value="road">Road</option><option value="rail">Rail</option><option value="pedestrian">Pedestrian</option><option value="field">Field</option></select></div></div></div><div id="pb-result"></div>';},calc(){var nps=document.getElementById('pb-nps').value;var surf=document.getElementById('pb-surf').value;var n=parseFloat(nps);var cat=n<=6?'s':n<=12?'m':'l';var depths={road:{s:300,m:450,l:600},rail:{s:600,m:600,l:600},pedestrian:{s:300,m:300,l:300},field:{s:150,m:150,l:150}};var d=depths[surf][cat];
 var surfColors={road:'#666',rail:'#8B4513',pedestrian:'#999',field:'#6B8E23'};
 var surfNames={road:'Asphalt',rail:'Ballast',pedestrian:'Pavement',field:'Soil'};
